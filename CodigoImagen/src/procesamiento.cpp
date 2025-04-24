@@ -121,7 +121,7 @@ unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixel
 
     // Mostrar información de control en consola
     cout << "Semilla: " << seed << endl;
-    cout << "Cantidad de píxeles leídos: " << n_pixels << endl;
+    cout << "Cantidad de pxeles leidos: " << n_pixels << endl;
 
     // Retornar el puntero al arreglo con los datos RGB
     return RGB;
