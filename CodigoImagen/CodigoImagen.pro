@@ -6,11 +6,11 @@ INCLUDEPATH += include
 
 SOURCES += \
         main.cpp \
-        src/enmascaramiento.cpp \
         src/operacionesBit.cpp \
-        src/procesamiento.cpp
+        src/procesamiento.cpp \
+        src/verificaciones.cpp
 
 HEADERS += \
-    include/enmascaramiento.h \
     include/operacionesBit.h \
-    include/procesamiento.h
+    include/procesamiento.h \
+    include/verificaciones.h

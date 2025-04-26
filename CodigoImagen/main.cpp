@@ -1,7 +1,6 @@
 #include <iostream>
 #include "procesamiento.h"
 #include "operacionesBit.h"
-#include "enmascaramiento.h"
 
 using namespace std;
 
@@ -50,8 +49,11 @@ int main()
         return 1;
     }
 
+    int total_bytes_mask = w_mask * h_mask * 3;
+
     unsigned short cantidad_pasos = contarArchivosTxt();
-    for (int paso = cantidad_pasos - 2; paso >= 0; --paso){
+
+    for (int paso = cantidad_pasos - 1; paso >= 0; --paso){
 
         //Cargar los datos del txt para el enmascaramiento y la verificacion
         bool coincidencia = false;
@@ -59,9 +61,6 @@ int main()
         int n_pixels = 0;
         string nombreArchivo = "M" + to_string(paso) + ".txt";
         unsigned int* valoresTxt = loadSeedMasking(nombreArchivo.c_str(), semilla, n_pixels);
-
-        unsigned char* resultado = new unsigned char[total_bytes];
-        aplicarMascaraInversa(pixelData, pixelDataMask, semilla, total_bytes);
 
         for (int tipo = 0; tipo < 5; ++tipo) { // 0: XOR, 1: ROT_DER, 2:ROT_IZQ, 3: SHIFT_DER, 4:SHIFT_IZQ
 
@@ -71,69 +70,66 @@ int main()
 
             if (tipo == 0) {
 
-                aplicarXOR(pixelData, pixelDataXoR, resultado, total_bytes);
-                if(compararResultadoConTxt(resultado, valoresTxt, semilla, n_pixels)){
-                    cout << "OPERACION ENCONTRADA: Paso " << paso << ": XOR" <<endl;
+                if(verificarXOR(pixelData, pixelDataXoR, pixelDataMask, valoresTxt, semilla, total_bytes_mask)){
+                    coincidencia = true;
+                    aplicarImagenXOR(pixelData, pixelDataXoR, total_bytes);
+                    cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": XOR" <<endl;
                     break;
                 }
             }
 
             for (int bits = 1; bits <= 8; ++bits) {
 
-                if(tipo == 0){
-                    break;
-                }
+                if (tipo == 1) {
 
-                else if (tipo == 1) {
-
-                    rotacionImagen(pixelData, resultado, total_bytes, bits, true);
-                    if(compararResultadoConTxt(resultado, valoresTxt, semilla, n_pixels)){
+                    if(verificarRotacion(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, true)){
+                        rotacionImagen(pixelData, total_bytes, bits, true);
                         coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso << ": Rotacion a la izquierda de " << bits << " bits" <<endl;
+                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Rotacion a la derecha de " << bits << " bits" <<endl;
                         break;
                     }
 
                 } else if (tipo == 2) {
 
-                    rotacionImagen(pixelData, resultado, total_bytes, bits, false);
-                    if(compararResultadoConTxt(resultado, valoresTxt, semilla, n_pixels)){
+                    if(verificarRotacion(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, false)){
+                        rotacionImagen(pixelData, total_bytes, bits, false);
                         coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso << ": Rotacion a la derecha de " << bits << " bits" <<endl;
+                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Rotacion a la izquierda de " << bits << " bits" <<endl;
                         break;
                     }
 
                 } else if(tipo==3){
 
-                    DesplazarBits(pixelData, resultado, total_bytes, bits, true);
-                    if(compararResultadoConTxt(resultado, valoresTxt, semilla, n_pixels)){
+                    if(verificarDesplazamiento(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, true)){
+                        desplazarImagen(pixelData, total_bytes, bits, true);
                         coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso << ": Desplazamiento a la izquierda de " << bits << " bits" <<endl;
+                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Desplazamiento a la derecha de " << bits << " bits" <<endl;
                         break;
                     }
 
                 } else if(tipo==4){
 
-                    DesplazarBits(pixelData, resultado, total_bytes, bits, false);
-                    if(compararResultadoConTxt(resultado, valoresTxt, semilla, n_pixels)){
+                    if(verificarDesplazamiento(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, false)){
+                        desplazarImagen(pixelData, total_bytes, bits, false);
                         coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso << ": Desplazamiento a la derecha de " << bits << " bits" <<endl;
+                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Desplazamiento a la izquierda de " << bits << " bits" <<endl;
                         break;
                     }
                 }
 
             }
 
-            if (!coincidencia) {
-                cout << "No se encontró operacion valida para el paso " << paso << endl;
-            }
-
         }
 
-        memcpy(pixelData, resultado, total_bytes);
+        if (!coincidencia) {
+            cout << "No se encontro operacion valida para el paso " << paso + 1<< endl;
+        }
+
         delete[] valoresTxt;
-        delete[] resultado;
 
     }
+
+    exportImage(pixelData, width, height, "ImagenRecuperada.bmp");
 
     delete[] pixelData;
     delete[] pixelDataMask;
