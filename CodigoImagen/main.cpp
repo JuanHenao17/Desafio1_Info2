@@ -1,6 +1,7 @@
 #include <iostream>
 #include "procesamiento.h"
 #include "operacionesBit.h"
+#include "verificaciones.h"
 
 using namespace std;
 
@@ -12,24 +13,23 @@ int main()
     cin >> nombreImagen;
 
     // Variables para almacenar las dimensiones de la imagen
-    int height = 0;
-    int width = 0;
+    unsigned int height = 0;
+    unsigned int width = 0;
 
     // Carga la imagen BMP en memoria dinámica y obtiene ancho y alto
     QString rutaImagen = QString::fromStdString(nombreImagen);
     unsigned char *pixelData = loadPixels(rutaImagen, width, height);
-
 
     if (pixelData == nullptr) {
         cout << "Error al cargar la imagen. Verifique el nombre y la ruta." << endl;
         return 1;
     }
 
-    int total_bytes = height * width * 3;
+    unsigned int total_bytes = height * width * 3;
 
     // Cargar la imagen BMP con la que se realiza el XOR en memoria dinámica y obtiene ancho y alto
-    int w_maskXOR = 0;
-    int h_maskXOR = 0;
+    unsigned int w_maskXOR = 0;
+    unsigned int h_maskXOR = 0;
     unsigned char *pixelDataXoR = loadPixels("I_M.bmp", w_maskXOR, h_maskXOR);
 
     if (pixelDataXoR == nullptr) {
@@ -39,8 +39,8 @@ int main()
     }
 
     // Cargar la imagen BMP con la que se realiza la mascara en memoria dinámica y obtiene ancho y alto
-    int w_mask = 0;
-    int h_mask = 0;
+    unsigned int w_mask = 0;
+    unsigned int h_mask = 0;
     unsigned char *pixelDataMask = loadPixels("M.bmp", w_mask, h_mask);
 
     if (pixelDataMask == nullptr) {
@@ -49,7 +49,7 @@ int main()
         return 1;
     }
 
-    int total_bytes_mask = w_mask * h_mask * 3;
+    unsigned int total_bytes_mask = w_mask * h_mask * 3;
 
     unsigned short cantidad_pasos = contarArchivosTxt();
 
@@ -57,12 +57,12 @@ int main()
 
         //Cargar los datos del txt para el enmascaramiento y la verificacion
         bool coincidencia = false;
-        int semilla = 0;
-        int n_pixels = 0;
+        unsigned int semilla = 0;
+        unsigned int n_pixels = 0;
         string nombreArchivo = "M" + to_string(paso) + ".txt";
         unsigned int* valoresTxt = loadSeedMasking(nombreArchivo.c_str(), semilla, n_pixels);
 
-        for (int tipo = 0; tipo < 5; ++tipo) { // 0: XOR, 1: ROT_DER, 2:ROT_IZQ, 3: SHIFT_DER, 4:SHIFT_IZQ
+        for (int tipo = 0; tipo < 4; ++tipo) { // 0: XOR, 1: ROTACION, 2: SHIFT_DER, 3:SHIFT_IZQ
 
             if(coincidencia){
                 break;
@@ -78,27 +78,19 @@ int main()
                 }
             }
 
-            for (int bits = 1; bits <= 8; ++bits) {
+            for (unsigned short bits = 1; bits <= 8; ++bits) {
 
                 if (tipo == 1) {
 
-                    if(verificarRotacion(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, true)){
-                        rotacionImagen(pixelData, total_bytes, bits, true);
+                    if(verificarRotacion(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits)){
+                        rotacionImagen(pixelData, total_bytes, bits);
                         coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Rotacion a la derecha de " << bits << " bits" <<endl;
+                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Rotacion a la derecha de " << 8 - bits  << " bits o rotacion a la izquierda de " << bits << " bits" <<endl;
                         break;
                     }
 
-                } else if (tipo == 2) {
 
-                    if(verificarRotacion(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, false)){
-                        rotacionImagen(pixelData, total_bytes, bits, false);
-                        coincidencia = true;
-                        cout << "OPERACION ENCONTRADA: Paso " << paso + 1 << ": Rotacion a la izquierda de " << bits << " bits" <<endl;
-                        break;
-                    }
-
-                } else if(tipo==3){
+                } else if(tipo==2){
 
                     if(verificarDesplazamiento(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, true)){
                         desplazarImagen(pixelData, total_bytes, bits, true);
@@ -107,7 +99,7 @@ int main()
                         break;
                     }
 
-                } else if(tipo==4){
+                } else if(tipo==3){
 
                     if(verificarDesplazamiento(pixelData, pixelDataMask, valoresTxt, semilla, total_bytes_mask, bits, false)){
                         desplazarImagen(pixelData, total_bytes, bits, false);
@@ -128,8 +120,6 @@ int main()
         delete[] valoresTxt;
 
     }
-
-    exportImage(pixelData, width, height, "ImagenRecuperada.bmp");
 
     delete[] pixelData;
     delete[] pixelDataMask;

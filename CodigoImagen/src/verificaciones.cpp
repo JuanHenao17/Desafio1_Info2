@@ -1,9 +1,9 @@
 #include "verificaciones.h"
 #include "operacionesBit.h"
 
-bool verificarXOR(unsigned char* img, unsigned char* imgXOR, unsigned char* mascara, unsigned int* valores_txt, int semilla, int total_bytes_mascara){
+bool verificarXOR(unsigned char* img, unsigned char* imgXOR, unsigned char* mascara, unsigned int* valores_txt, unsigned int semilla, unsigned int total_bytes_mascara){
 
-    for (int i = 0; i < total_bytes_mascara; ++i) {
+    for (unsigned int i = 0; i < total_bytes_mascara; ++i) {
 
         unsigned int val1 = img[semilla + i];
         unsigned int val2 = imgXOR[semilla + i];
@@ -18,12 +18,12 @@ bool verificarXOR(unsigned char* img, unsigned char* imgXOR, unsigned char* masc
 
 }
 
-bool verificarRotacion(unsigned char* img, unsigned char* mascara, unsigned int* valores_txt, int semilla, int total_bytes_mascara, int bits, bool band){
+bool verificarRotacion(unsigned char* img, unsigned char* mascara, unsigned int* valores_txt, unsigned int semilla, unsigned int total_bytes_mascara, unsigned short bits){
 
-    for (int i = 0; i < total_bytes_mascara; ++i) {
+    for (unsigned int i = 0; i < total_bytes_mascara; ++i) {
 
         unsigned int val1 = img[semilla + i];
-        unsigned int resultado = band ? (rotarDerecha(val1, bits) + mascara[i]) : (rotarIzquierda(val1, bits) + mascara[i]);
+        unsigned int resultado = rotarDerecha(val1, bits) + mascara[i];
 
         if(resultado != valores_txt[i]){
             return false;
@@ -34,9 +34,9 @@ bool verificarRotacion(unsigned char* img, unsigned char* mascara, unsigned int*
 
 }
 
-bool verificarDesplazamiento(unsigned char* img, unsigned char* mascara, unsigned int* valores_txt, int semilla, int total_bytes_mascara, int bits, bool band){
+bool verificarDesplazamiento(unsigned char* img, unsigned char* mascara, unsigned int* valores_txt, unsigned int semilla, unsigned int total_bytes_mascara, unsigned short bits, bool band){
 
-    for (int i = 0; i < total_bytes_mascara; ++i) {
+    for (unsigned int i = 0; i < total_bytes_mascara; ++i) {
 
         unsigned int val1 = img[semilla + i];
         unsigned int resultado = band ? ((val1 >> bits) + mascara[i]) : ((val1 << bits) + mascara[i]);

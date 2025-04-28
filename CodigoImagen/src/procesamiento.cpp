@@ -7,7 +7,7 @@
 using namespace std;
 
 // --- Carga imagen BMP ---
-unsigned char* loadPixels(QString input, int &width, int &height) {
+unsigned char* loadPixels(QString input, unsigned int &width, unsigned int &height) {
 
     // Cargar la imagen BMP desde el archivo especificado (usando Qt)
     QImage imagen(input);
@@ -26,13 +26,13 @@ unsigned char* loadPixels(QString input, int &width, int &height) {
     height = imagen.height();
 
     // Calcula el tamaño total de datos (3 bytes por píxel: R, G, B)
-    int dataSize = width * height * 3;
+    unsigned int dataSize = width * height * 3;
 
     // Reserva memoria dinámica para almacenar los valores RGB de cada píxel
     unsigned char* pixelData = new unsigned char[dataSize];
 
     // Copia cada línea de píxeles de la imagen Qt a nuestro arreglo lineal
-    for (int y = 0; y < height; ++y) {
+    for (unsigned int y = 0; y < height; ++y) {
         const uchar* srcLine = imagen.scanLine(y);
         unsigned char* dstLine = pixelData + y * width * 3;
         memcpy(dstLine, srcLine, width * 3);
@@ -70,7 +70,7 @@ bool exportImage(unsigned char* pixelData, int width,int height, QString archivo
 }
 
 // --- Carga semilla y datos del enmascaramiento ---
-unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixels) {
+unsigned int* loadSeedMasking(const char* nombreArchivo, unsigned int &seed, unsigned int &n_pixels) {
 
     // Abrir el archivo que contiene la semilla y los valores RGB
     ifstream archivo(nombreArchivo);
@@ -109,7 +109,7 @@ unsigned int* loadSeedMasking(const char* nombreArchivo, int &seed, int &n_pixel
     archivo >> seed;
 
     // Leer y almacenar los valores RGB uno por uno en el arreglo dinámico
-    for (int i = 0; i < n_pixels * 3; i += 3) {
+    for (unsigned int i = 0; i < n_pixels * 3; i += 3) {
         archivo >> r >> g >> b;
         RGB[i] = r;
         RGB[i + 1] = g;
